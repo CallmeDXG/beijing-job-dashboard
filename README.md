@@ -46,8 +46,15 @@ python3 -m http.server 8080
 
 ## 部署到 GitHub Pages（分享给微信好友）
 
-1. 在 GitHub 新建一个**公开**仓库（如 `beijing-job-dashboard`）。
-2. 将本目录全部内容推送到仓库 `main` 分支。
+> 本目录**已本地初始化 Git 并完成首次提交**（commit `511ba5e`）。你只需补一条 remote、推送，再开 Pages 即可上线。
+
+1. 在 GitHub 新建一个**公开**仓库（如 `beijing-job-dashboard`，**不要**勾选自动生成 README/.gitignore，避免与本地冲突）。
+2. 在本目录执行（把 `<你的用户名>` 和 `<仓库名>` 替换成实际值）：
+   ```bash
+   git remote add origin https://github.com/<你的用户名>/<仓库名>.git
+   git branch -M main
+   git push -u origin main
+   ```
 3. 仓库 **Settings → Pages → Build and deployment → Source** 选择 **Deploy from a branch**，
    分支选 **main**，目录选 **/ (root)**，保存。
 4. 等待 1–2 分钟，访问 `https://<你的用户名>.github.io/<仓库名>/`。
