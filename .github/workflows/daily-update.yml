@@ -1,0 +1,42 @@
+name: 每日更新求职看板数据
+
+on:
+  schedule:
+    # 北京时间 08:00 自动运行（UTC 00:00）
+    - cron: "0 0 * * *"
+  workflow_dispatch: {}   # 支持手动触发
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 重新生成 jobs.json
+        env:
+          LINK_CHECK: "0"            # CI 网络对国内招聘站探测易误判，默认关闭；如需开启改为 "1"
+          JOB_SEARCH_API_KEY: ${{ secrets.JOB_SEARCH_API_KEY }}  # 可选：配置后尝试增量抓取新岗位
+        run: python scripts/update.py
+
+      - name: 提交更新（若有变化）
+        run: |
+          git config user.name "job-board-bot"
+          git config user.email "bot@job-board.local"
+          git add data/jobs.json index.html
+          if git diff --cached --quiet; then
+            echo "无变化，跳过提交"
+          else
+            git commit -m "chore: 每日自动更新求职看板数据 $(date +'%Y-%m-%d')"
+            git push
+          fi

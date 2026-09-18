@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>北京求职看板 · 胡蕊</title>
+  <meta name="description" content="基于简历的北京地区求职辅助方案：潘家园通勤1小时圈岗位匹配、薪资、技能缺口与投递优先级看板。" />
+  <style>
+:root {
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --ink: #1f2733;
+  --muted: #6b7785;
+  --line: #e6eaf2;
+  --brand: #2b579a;
+  --brand-soft: #eaf0fb;
+  --a: #1f9d6b;   /* 高优先 A 绿 */
+  --b: #e6a23c;   /* 中优先 B 橙 */
+  --c: #d9534f;   /* 低优先 C 红 */
+  --shadow: 0 2px 10px rgba(31,39,51,.06);
+  --radius: 14px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 1080px; margin: 0 auto; padding: 18px 16px 60px; }
+
+/* Hero */
+.hero {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #2b579a 0%, #3f74c4 100%);
+  color: #fff; border-radius: var(--radius); padding: 22px 24px; box-shadow: var(--shadow);
+}
+.hero-main { display: flex; align-items: center; gap: 16px; }
+.avatar {
+  width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,.18);
+  display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700;
+  border: 2px solid rgba(255,255,255,.4);
+}
+.hero h1 { margin: 0; font-size: 22px; letter-spacing: .5px; }
+.subtitle { margin: 2px 0 4px; font-size: 14px; opacity: .95; font-weight: 500; }
+.anchor { margin: 0; font-size: 13px; opacity: .85; }
+.hero-meta { text-align: right; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.badge.auto { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35); padding: 4px 10px; border-radius: 999px; font-size: 12px; }
+.updated { font-size: 12px; opacity: .85; }
+
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+.stat { background: var(--card); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); text-align: center; }
+.stat .num { font-size: 26px; font-weight: 700; color: var(--brand); }
+.stat .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* Charts */
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.card { background: var(--card); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+.chart-card h3 { margin: 0 0 10px; font-size: 15px; }
+.chart-card:last-child { grid-column: 1 / -1; }
+
+/* Controls */
+.controls { margin-bottom: 14px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.tab {
+  flex: 1; min-width: 160px; cursor: pointer; border: 1px solid var(--line); background: var(--card);
+  padding: 12px 14px; border-radius: 12px; font-size: 15px; font-weight: 600; color: var(--ink);
+  display: flex; align-items: center; justify-content: center; gap: 8px; transition: .15s;
+}
+.tab .cnt { background: var(--brand-soft); color: var(--brand); border-radius: 999px; padding: 1px 9px; font-size: 12px; }
+.tab.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+.tab.active .cnt { background: rgba(255,255,255,.25); color: #fff; }
+
+.filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.filters input[type="search"] {
+  flex: 1; min-width: 200px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; background: var(--card);
+}
+.filters select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; background: var(--card); }
+.switch { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.switch input { width: 16px; height: 16px; }
+
+/* Job cards */
+.joblist { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.job {
+  background: var(--card); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow);
+  border-left: 5px solid var(--line); display: flex; flex-direction: column; gap: 10px; position: relative;
+}
+.job.lvA { border-left-color: var(--a); }
+.job.lvB { border-left-color: var(--b); }
+.job.lvC { border-left-color: var(--c); }
+.job .topline { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.job h4 { margin: 0; font-size: 16px; }
+.job .company { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.pri {
+  flex-shrink: 0; font-weight: 700; font-size: 13px; padding: 4px 10px; border-radius: 999px; color: #fff; white-space: nowrap;
+}
+.pri.A { background: var(--a); } .pri.B { background: var(--b); } .pri.C { background: var(--c); }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 12px; padding: 3px 9px; border-radius: 8px; background: var(--brand-soft); color: var(--brand); }
+.tag.dist { background: #eaf7f0; color: #1f9d6b; }
+.tag.dist.warn { background: #fff3e0; color: #e6a23c; }
+.tag.dist.over { background: #fdecea; color: #d9534f; }
+.tag.match { background: #eef0f5; color: #4a5568; }
+
+.matchbar { height: 8px; border-radius: 6px; background: #eef0f5; overflow: hidden; }
+.matchbar > i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg,#2b579a,#3f74c4); }
+
+.gap { font-size: 13px; color: #44505e; background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; }
+.gap b { color: var(--ink); }
+.skills { display: flex; flex-wrap: wrap; gap: 5px; }
+.skills .s { font-size: 11px; padding: 2px 7px; border-radius: 6px; background: #f0f3f9; color: #5a6675; }
+
+.note { font-size: 12px; color: var(--muted); }
+.note::before { content: "💡 "; }
+
+.job .actions { display: flex; gap: 8px; margin-top: auto; }
+.btn-link {
+  flex: 1; text-align: center; text-decoration: none; background: var(--brand); color: #fff;
+  padding: 9px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; transition: .15s;
+}
+.btn-link:hover { background: #24487f; }
+.btn-link.dead { background: #9aa6b2; pointer-events: none; }
+.src { font-size: 11px; color: var(--muted); align-self: center; white-space: nowrap; }
+
+/* Footer */
+.foot { margin-top: 24px; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.7; }
+.foot p { margin: 4px 0; }
+
+.empty { grid-column: 1/-1; text-align: center; color: var(--muted); padding: 40px; }
+
+/* 继续查询按钮 */
+.load-more {
+  cursor: pointer; border: none; background: linear-gradient(135deg, #2b579a 0%, #3f74c4 100%);
+  color: #fff; font-size: 15px; font-weight: 600; padding: 12px 26px; border-radius: 999px;
+  box-shadow: var(--shadow); transition: .15s;
+}
+.load-more:hover { opacity: .92; transform: translateY(-1px); }
+.load-more:active { transform: translateY(0); }
+
+/* 跨行业子标签 */
+.subtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; padding-left: 2px; }
+.subtab {
+  cursor: pointer; border: 1px solid #e5e9f0; background: #fff; color: #2b3240;
+  font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 999px; transition: .15s;
+}
+.subtab:hover { border-color: #3f74c4; color: #3f74c4; }
+.subtab.active { background: #3f74c4; border-color: #3f74c4; color: #fff; }
+
+@media (max-width: 760px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .charts { grid-template-columns: 1fr; }
+  .chart-card:last-child { grid-column: auto; }
+  .joblist { grid-template-columns: 1fr; }
+  .hero { flex-direction: column; align-items: flex-start; }
+  .hero-meta { align-items: flex-start; text-align: left; }
+}
+
+</style>
+</head>
+<body>
+  <div class="page">
+    <!-- 顶部信息 -->
+    <header class="hero">
+      <div class="hero-main">
+        <div class="avatar">胡</div>
+        <div>
+          <h1>北京求职看板</h1>
+          <p class="subtitle" id="heroTarget">燃气设计工程师 / 工艺设计工程师</p>
+          <p class="anchor">📍 通勤锚点：<span id="heroAnchor">潘家园地铁站（北京·朝阳区·10号线）</span></p>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <span class="badge auto">⏱ 每日自动更新</span>
+        <span class="updated" id="heroUpdated">更新于 —</span>
+      </div>
+    </header>
+
+    <!-- 统计卡片 -->
+    <section class="stats" id="stats"></section>
+
+    <!-- 图表 -->
+    <section class="charts">
+      <div class="card chart-card">
+        <h3>📊 投递优先级 Top 10</h3>
+        <canvas id="chartPriority" height="320"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h3>🎯 匹配度 × 通勤距离</h3>
+        <canvas id="chartScatter" height="320"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h3>🥧 优先级等级分布</h3>
+        <canvas id="chartDist" height="320"></canvas>
+      </div>
+    </section>
+
+    <!-- 控制栏 -->
+    <section class="controls">
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="1">本行业岗位 <span class="cnt" id="cnt1">0</span></button>
+        <button class="tab" data-tab="2">跨行业转岗机会 <span class="cnt" id="cnt2">0</span></button>
+      </div>
+      <div class="subtabs" id="subtabs" style="display:none"></div>
+      <div class="filters">
+        <input type="search" id="search" placeholder="🔍 搜索公司 / 职位 / 技能…" />
+        <select id="sort">
+          <option value="priority">排序：投递优先级 ↓</option>
+          <option value="match">排序：匹配度 ↓</option>
+          <option value="salary">排序：薪资上限 ↓</option>
+          <option value="distance">排序：通勤距离 ↑</option>
+        </select>
+        <label class="switch">
+          <input type="checkbox" id="only1h" />
+          <span>仅看 1 小时圈</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- 岗位列表 -->
+    <section class="joblist" id="joblist"></section>
+
+    <!-- 继续查询（点击揭示第二批岗位） -->
+    <div class="loadmore" id="loadMoreWrap" style="display:none;text-align:center;margin:20px 0 4px;">
+      <button class="load-more" id="loadMore" type="button">➕ 继续查询 · 再增加 <span id="moreCount">0</span> 个岗位</button>
+      <p class="allshown" id="allShown" style="display:none;color:var(--muted);font-size:13px;margin:10px 0 0;">✅ 已显示全部岗位</p>
+    </div>
+
+    <footer class="foot">
+      <p>数据来源：各大招聘平台公开在招/近期发布岗位（已附真实链接）。匹配度与优先级由简历画像加权计算，仅供求职决策参考。</p>
+      <p id="footNote"></p>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>window.__DATA__ = {"meta": {"candidate": {"name": "胡蕊", "target": "燃气设计工程师 / 工艺设计工程师", "school": "中国石油大学（北京）· 油气储运工程（本科）", "anchor": "潘家园地铁站（北京·朝阳区·10号线）", "anchor_commute_circle": 60, "skills": {"domain": ["油气储运工程", "燃气工程设计（场站/管道/阀室/中低压）", "城镇燃气", "城市燃气"], "sim": ["Aspen HYSYS", "OLGA（多相流动态仿真）"], "analysis": ["Abaqus（应力/强度校核）", "MATLAB（数值计算）"], "drawing": ["AutoCAD（工艺流程图/设备布置/施工图）"], "doc": ["技术方案撰写", "企业标准编制与修订", "投标文件编制", "竣工归档文件"], "prog": ["Python（基础/数据处理/自动化脚本）", "Office/WPS"]}, "experience_years": 0.3, "education": "本科", "english": "未明确（简历未列英语等级）"}, "subtabs": [{"key": "internet", "name": "互联网/IT"}, {"key": "energy", "name": "新能源/储能/智造"}, {"key": "chem", "name": "化工/材料/石化"}, {"key": "cae", "name": "工业软件/CAE仿真"}, {"key": "doc", "name": "技术文档/标准/咨询"}], "updated_at": "2026-09-18 17:54", "timezone": "GMT+8 (北京)", "total": 35, "tab1_count": 14, "tab2_count": 21, "weights": {"match": 0.45, "salary": 0.3, "commute": 0.25}, "note": "岗位为人工核验的真实在招/近期发布信息；每日由 GitHub Actions 重算评分并复查链接。如需全自动增量抓取，请在仓库 Secrets 配置 JOB_SEARCH_API_KEY。"}, "jobs": [{"id": 1, "tab": 1, "subtab": null, "batch": 1, "company": "海隆石油技术服务有限公司", "title": "天然气工艺工程师", "salary_text": "15-30k", "salary_min": 15, "salary_max": 30, "location": "朝阳区·CBD（工人体育场北路）", "commute_min": 20, "circle": "优", "within_1h": true, "skills": ["工艺模拟(HYSYS/Aspen)", "CAD", "燃气工程设计", "物料/热量衡算", "PID/PFD"], "gap": "要求3年以上经验、可接受不定期外派；工具高度匹配（HYSYS/CAD她均掌握），经验年限为主要缺口。", "match": 78, "salary_score": 70.0, "commute_score": 80.0, "priority": 76, "priority_level": "A", "link": "https://www.quanzhi.com/job/6a753568f87cf99210b56552", "source": "智联招聘", "posted": "2026-08-07", "note": "CBD核心区，通勤极优，薪资上限高。", "link_ok": true}, {"id": 2, "tab": 1, "subtab": null, "batch": 1, "company": "杰瑞石油天然气工程有限公司（北京分公司）", "title": "工艺工程师(天然气处理)-设计 J12279", "salary_text": "15-30k", "salary_min": 15, "salary_max": 30, "location": "朝阳区", "commute_min": 22, "circle": "优", "within_1h": true, "skills": ["油气集输/储运", "国内外设计标准", "模拟软件(HYSYS/Aspen)", "PID/PFD", "英文技术文件", "5年+海外EPC"], "gap": "要求5年以上海外EPC设计管理经验+英语读写；她经验<1年、无海外项目、英语未明确 → 经验与语言缺口较大。", "match": 60, "salary_score": 70.0, "commute_score": 76.0, "priority": 67, "priority_level": "B", "link": "https://www.liepin.com/job/1977963969.shtml", "source": "猎聘", "posted": "2026-08-27", "note": "专业方向高度对口，但门槛偏高，建议作为冲刺目标。", "link_ok": true}, {"id": 3, "tab": 1, "subtab": null, "batch": 1, "company": "北京市公用工程设计监理有限公司（北燃实业全资子公司）", "title": "燃气工程师", "salary_text": "面议", "salary_min": null, "salary_max": null, "location": "朝阳区·化工路59号院", "commute_min": 30, "circle": "优", "within_1h": true, "skills": ["城镇燃气/综合能源工程设计", "方案/施工图设计", "可研/项目建议书", "AutoCAD"], "gap": "城镇燃气设计正是其求职意向，专业与工具（AutoCAD）完全对口；对应届/初级友好，缺口很小。", "match": 90, "salary_score": 50.0, "commute_score": 60.0, "priority": 70, "priority_level": "A", "link": "https://chinahr.com/detail/62bd729f27c72706de31d61c", "source": "新华英才", "posted": "近期在招", "note": "北燃体系内设计岗，最对口的本地国企设计岗之一。", "link_ok": true}, {"id": 4, "tab": 1, "subtab": null, "batch": 1, "company": "中交水运规划设计院有限公司", "title": "油工艺设计/设计人员 J47457", "salary_text": "面议", "salary_min": null, "salary_max": null, "location": "东城区·国子监街28号", "commute_min": 35, "circle": "优", "within_1h": true, "skills": ["油气储运工程(硕士)", "AutoCAD", "CAESAR II/三维工厂设计", "英语六级", "中级职称5年"], "gap": "要求硕士+中级职称+5年经验，社招门槛高；她本科、经验<1年 → 学历与资历缺口大，专业核心匹配。", "match": 55, "salary_score": 50.0, "commute_score": 50.0, "priority": 52, "priority_level": "C", "link": "https://m.gaoxiaojob.com/job/detail/2266520.html", "source": "高才网", "posted": "2026-07-16", "note": "央企设计院，长期关注其社招补录。", "link_ok": true}, {"id": 5, "tab": 1, "subtab": null, "batch": 1, "company": "北京中航油工程建设有限公司", "title": "储运专业设计工程师", "salary_text": "面议（按经验）", "salary_min": null, "salary_max": null, "location": "首都国际机场", "commute_min": 55, "circle": "良", "within_1h": true, "skills": ["石油石化储运工艺设计", "工艺模拟计算", "AutoCAD", "工程师及以上职称5年", "注册工程师优先"], "gap": "要求工程师职称+5年+注册优先，资历门槛高；专业核心匹配，距离偏临界。", "match": 50, "salary_score": 50.0, "commute_score": 10.0, "priority": 40, "priority_level": "C", "link": "https://m.job5588.com/company.php?uid=6611", "source": "工程监理招聘网", "posted": "2026-06-21", "note": "机场方向，通勤接近1小时临界，优先级受距离拖累。", "link_ok": true}, {"id": 6, "tab": 1, "subtab": null, "batch": 1, "company": "中国电建集团北京勘测设计研究院", "title": "氢能工艺岗 J10534", "salary_text": "10-15k", "salary_min": 10, "salary_max": 15, "location": "朝阳区", "commute_min": 22, "circle": "优", "within_1h": true, "skills": ["电解水制氢工艺设计", "化工/能源化学", "Aspen/Hysys", "硕士", "论文/专利", "英语"], "gap": "要求硕士+学术成果（论文/专利），她本科无明确论文；软件（Aspen/Hysys）匹配，校招应届可投。", "match": 62, "salary_score": 30.0, "commute_score": 76.0, "priority": 56, "priority_level": "C", "link": "https://www.iguopin.com/job/detail?id=195439800755424964", "source": "国聘", "posted": "2026-06-30", "note": "新能源制氢方向，与燃气储运有工艺延伸关系。", "link_ok": true}, {"id": 7, "tab": 1, "subtab": null, "batch": 1, "company": "北京中冶设备研究设计总院", "title": "工艺设计工程师(能环)", "salary_text": "10-20k", "salary_min": 10, "salary_max": 20, "location": "朝阳区·安外胜古庄2号", "commute_min": 20, "circle": "优", "within_1h": true, "skills": ["热能动力", "压力管道/蒸汽管道设计", "发电厂工艺设计", "AutoCAD"], "gap": "要求2-3年+蒸汽/发电设计经验，她偏燃气非发电，传热学有课程基础；缺口中等。", "match": 65, "salary_score": 40.0, "commute_score": 80.0, "priority": 61, "priority_level": "B", "link": "https://zrc-sme.chinasme.cn/job/66d89c0b84c47b7b15b923d5", "source": "中国中小企业服务网", "posted": "近期在招", "note": "央企，热力/能环工艺，通勤优。", "link_ok": true}, {"id": 8, "tab": 1, "subtab": null, "batch": 1, "company": "北京市热力工程设计有限责任公司", "title": "热能工程设计师（社招）", "salary_text": "面议", "salary_min": null, "salary_max": null, "location": "丰台区·紫芳园", "commute_min": 30, "circle": "优", "within_1h": true, "skills": ["市政热力/暖通设计", "AutoCAD/天正", "锅炉房/供热管网/分布式能源", "硕士", "注册设备工程师优先"], "gap": "供热/暖通设计经验偏弱（专业为油气储运），但『供热供燃气』高度相关；硕士要求→她本科，缺口中等。", "match": 68, "salary_score": 50.0, "commute_score": 60.0, "priority": 61, "priority_level": "B", "link": "https://www.iguopin.com/job/detail?id=213096523817288057", "source": "国聘", "posted": "2026-08-10", "note": "北京热力集团下属，供热供燃气方向强相关。", "link_ok": true}, {"id": 9, "tab": 1, "subtab": null, "batch": 1, "company": "北京市燃气集团 / 北燃实业集团", "title": "能源工程项目设计（储备人才）", "salary_text": "面议（六险两金·北京户口）", "salary_min": null, "salary_max": null, "location": "北京多区（集团统一分配）", "commute_min": 28, "circle": "优", "within_1h": true, "skills": ["供热供燃气通风及空调工程", "石油与天然气工程", "本科应届", "能源工程项目设计"], "gap": "最对口国企，提供户口+六险两金；2026春招(3.12-6.30)或已截止，需关注补录/2027提前批；需基层轮岗。", "match": 88, "salary_score": 50.0, "commute_score": 64.0, "priority": 71, "priority_level": "A", "link": "https://bjgas.zhiye.com/campus", "source": "北京燃气招聘门户", "posted": "滚动招聘", "note": "首都燃气龙头，强烈建议关注官网补录与2027届提前批。", "link_ok": true}, {"id": 10, "tab": 2, "subtab": "chem", "batch": 1, "company": "北京京顿工程技术有限公司", "title": "工艺工程师", "salary_text": "10-20k", "salary_min": 10, "salary_max": 20, "location": "朝阳区", "commute_min": 20, "circle": "优", "within_1h": true, "skills": ["Aspen/ProII流程模拟", "PID/PFD", "工艺计算", "CAD", "化工工艺"], "gap": "化工工艺（非油气）但 Aspen/CAD/PID 完全对口；要求2年以上，她<1年 → 小-中缺口。", "match": 75, "salary_score": 40.0, "commute_score": 80.0, "priority": 66, "priority_level": "B", "link": "https://m.chenhr.com/job/S4viX.html", "source": "化工英才网", "posted": "2026-08-27", "note": "工艺工具链无缝迁移，转化工工艺的优选。", "link_ok": true}, {"id": 11, "tab": 2, "subtab": "chem", "batch": 1, "company": "北京安耐吉能源工程技术有限公司", "title": "工艺工程师", "salary_text": "10-20k", "salary_min": 10, "salary_max": 20, "location": "海淀区", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["石化工艺设计3年", "技术方案编制", "档案管理/数据分析", "英语", "出差/驾照"], "gap": "要求3年经验；她<1年；但技术方案/档案管理（企业标准经验）匹配；中缺口。", "match": 68, "salary_score": 40.0, "commute_score": 30.0, "priority": 50, "priority_level": "C", "link": "https://m.healthr.com/job/S44VF.html", "source": "医药英才网", "posted": "2026-09-14", "note": "海淀，通勤偏长；文档能力可迁移。", "link_ok": true}, {"id": 12, "tab": 2, "subtab": "chem", "batch": 1, "company": "北京清创晋华科技有限公司", "title": "化工工艺工程师", "salary_text": "面议", "salary_min": null, "salary_max": null, "location": "海淀区·成府路", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["Aspen/CAD", "PID", "工艺计算", "化工工艺包开发"], "gap": "化工工艺包开发经验优先；Aspen/CAD对口；经验中等缺口。", "match": 70, "salary_score": 50.0, "commute_score": 30.0, "priority": 54, "priority_level": "C", "link": "https://m.zhupinhr.com/zhaopin/info-1805863960919109632.html", "source": "筑招网", "posted": "2026-09-04", "note": "水煤浆气化技术高新企业，工艺栈匹配。", "link_ok": true}, {"id": 13, "tab": 2, "subtab": "cae", "batch": 1, "company": "北京盛维安泰系统技术有限公司", "title": "CAE仿真工程师（Abaqus）", "salary_text": "15-25k", "salary_min": 15, "salary_max": 25, "location": "海淀区·清河", "commute_min": 48, "circle": "良", "within_1h": true, "skills": ["Abaqus有限元分析", "SolidWorks", "售前/技术支持与培训", "文档编写"], "gap": "她有Abaqus基础（亮点）；缺SolidWorks与售前经验、3D CAD项目经验；文档能力她有；中缺口。", "match": 66, "salary_score": 60.0, "commute_score": 24.0, "priority": 54, "priority_level": "C", "link": "https://m.quanzhi.com/job/detail/6832816ae20c04d3d07eb488", "source": "全职招聘网", "posted": "近期在招", "note": "CAE方向，Abaqus是直接加分项。", "link_ok": true}, {"id": 14, "tab": 2, "subtab": "cae", "batch": 1, "company": "北京海卓臻氢航动力科技有限公司", "title": "CAE工程师", "salary_text": "15-25k", "salary_min": 15, "salary_max": 25, "location": "延庆区·八达岭", "commute_min": 95, "circle": "超圈", "within_1h": false, "skills": ["ANSYS/ABAQUS/HyperMesh", "氢内燃机CAE", "3年以上"], "gap": "远郊；要求发动机CAE 3年+ANSYS/Fluent；她Abaqus基础但缺ANSYS/Fluent/发动机经验；距离超圈。", "match": 48, "salary_score": 60.0, "commute_score": 0, "priority": 40, "priority_level": "C", "link": "https://m.liepin.com/job/1980826177.shtml", "source": "猎聘", "posted": "近期在招", "note": "超出1小时通勤圈，仅作备选。", "link_ok": true}, {"id": 15, "tab": 2, "subtab": "energy", "batch": 1, "company": "某储能装备企业（base北京亦庄）", "title": "CAE（机械仿真+热仿真）", "salary_text": "20-35k", "salary_min": 20, "salary_max": 35, "location": "大兴区·亦庄", "commute_min": 55, "circle": "良", "within_1h": true, "skills": ["ANSYS/Fluent/Star-CCM+/ABAQUS", "热管理/力学仿真", "SolidWorks/CAD", "3年"], "gap": "要求CFD/热仿真全套+3年；她Abaqus基础缺Fluent/ANSYS；中-大缺口；薪资高。", "match": 55, "salary_score": 90.0, "commute_score": 10.0, "priority": 54, "priority_level": "C", "link": "https://www.quanzhi.com/job/6a7bcd13f87cf99210c31777", "source": "全职招聘网", "posted": "近期在招", "note": "亦庄，临界通勤；高薪但门槛高。", "link_ok": true}, {"id": 16, "tab": 2, "subtab": "energy", "batch": 1, "company": "液流储能科技有限公司", "title": "管道仪表工艺工程师", "salary_text": "15-25k", "salary_min": 15, "salary_max": 25, "location": "朝阳区·小关街道", "commute_min": 20, "circle": "优", "within_1h": true, "skills": ["AutoCAD Plant 3D/SolidWorks/Aspen Plus", "液流电池PID/工艺计算", "强腐蚀介质管道设计"], "gap": "储能（电化学）领域新，但工具完全对口（AutoCAD/Aspen/PID/工艺计算）；2年经验，她<1年；小-中缺口。", "match": 72, "salary_score": 60.0, "commute_score": 80.0, "priority": 70, "priority_level": "A", "link": "https://www.quanzhi.com/job/6a00abc05e571018291f3ea2", "source": "全职招聘网", "posted": "近期在招", "note": "朝阳小关，通勤优；储能工艺迁移首选。", "link_ok": true}, {"id": 17, "tab": 2, "subtab": "doc", "batch": 1, "company": "海博思创", "title": "产品文档开发工程师", "salary_text": "12-24k·15薪", "salary_min": 12, "salary_max": 24, "location": "海淀区", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["技术文档撰写/标准化", "招投标书", "中英文互译", "Visio/Markdown", "储能产品"], "gap": "她强项！企业标准编制/技术方案/投标文档经验直接迁移；要求硕士+3年+英语流利，她本科<1年、英语未知；文档高匹配，经验/学历缺口。", "match": 74, "salary_score": 52.0, "commute_score": 30.0, "priority": 56, "priority_level": "C", "link": "https://www.liepin.com/job/1985455203.shtml", "source": "猎聘", "posted": "2026-09-08", "note": "文档/标准能力变现，15薪可观。", "link_ok": true}, {"id": 18, "tab": 2, "subtab": "doc", "batch": 1, "company": "北京中泰创安科技有限公司", "title": "技术文档工程师", "salary_text": "8-15k", "salary_min": 8, "salary_max": 15, "location": "海淀区", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["技术文档撰写", "招投标技术部分", "Word/Excel/PPT", "排版"], "gap": "她技术方案/投标/排版经验直接对口；要求2年+招投标经验，她<1年但项目有中标经历（北蔡站）；中低缺口。", "match": 78, "salary_score": 26.0, "commute_score": 30.0, "priority": 50, "priority_level": "C", "link": "https://www.quanzhi.com/job/6a45195c642572c2163b7e45", "source": "全职招聘网", "posted": "近期在招", "note": "文档/投标方向，门槛相对友好。", "link_ok": true}, {"id": 19, "tab": 2, "subtab": "doc", "batch": 1, "company": "北京玻钢院复合材料有限公司（中国建材）", "title": "标准化技术员", "salary_text": "面议", "salary_min": null, "salary_max": null, "location": "海淀区中关村 / 延庆", "commute_min": 50, "circle": "良", "within_1h": true, "skills": ["国际/国家/行业标准编制", "专利撰写", "材料专业", "英语", "3年"], "gap": "她有企业标准编制修订经验（亮点）；但要求材料专业+3年+英语，专业不对口（油气储运非材料）；中缺口。", "match": 60, "salary_score": 50.0, "commute_score": 20.0, "priority": 47, "priority_level": "C", "link": "https://www.quanzhi.com/job/6a716ada73ad7cc859bdb0a4", "source": "全职招聘网（国聘）", "posted": "2026-08-05", "note": "标准编制能力迁移，但专业跨度较大。", "link_ok": true}, {"id": 20, "tab": 2, "subtab": "internet", "batch": 1, "company": "北京码博科技有限公司", "title": "Python开发工程师", "salary_text": "10-18k", "salary_min": 10, "salary_max": 18, "location": "北京（朝阳/海淀）", "commute_min": 30, "circle": "优", "within_1h": true, "skills": ["Python(FastAPI/Flask/Pandas/Numpy)", "工业物联网/数据", "SQL", "1-3年"], "gap": "她Python基础+数据处理（课程项目用Python/AI辅助）；缺Web框架/数据库/1-3年经验 → 中缺口；可转向数据岗。", "match": 62, "salary_score": 36.0, "commute_score": 60.0, "priority": 54, "priority_level": "C", "link": "https://www.iguopin.com/job/detail?id=211246551899572869", "source": "国聘", "posted": "截止2026-10-26", "note": "数据/自动化方向，Python能力可迁移。", "link_ok": true}, {"id": 21, "tab": 2, "subtab": "internet", "batch": 1, "company": "北京掌上先机网络科技有限公司", "title": "数据分析师（校招/实习）", "salary_text": "10-20k·13薪", "salary_min": 10, "salary_max": 20, "location": "海淀区", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["SQL", "Python", "数据分析", "电商业务", "商业分析", "看板搭建"], "gap": "她Python基础+数据处理(课程项目)，缺SQL熟练度与数仓经验；校招/实习、专业不限、可转产品 → 中缺口，数据岗入门跳板。", "match": 64, "salary_score": 40.0, "commute_score": 30.0, "priority": 48, "priority_level": "C", "link": "https://www.iguopin.com/job/detail?id=213410536191164454", "source": "国聘", "posted": "2026-08-12", "note": "校招应届，13薪，电商数据分析入门。", "link_ok": true}, {"id": 22, "tab": 2, "subtab": "internet", "batch": 1, "company": "京东科技控股股份有限公司", "title": "数据分析师", "salary_text": "面议（经验2-4年）", "salary_min": null, "salary_max": null, "location": "通州区·科创十一街", "commute_min": 55, "circle": "良", "within_1h": true, "skills": ["SQL", "Python/R", "ABTest", "策略设计", "消费金融", "大数据"], "gap": "要求2-4年互联网/金融数据分析+ABTest经验；她Python基础但缺SQL深度与业务经验 → 中-大缺口；薪资上限高（大厂）。", "match": 55, "salary_score": 50.0, "commute_score": 10.0, "priority": 42, "priority_level": "C", "link": "https://m.jrzp.com/job4092274.shtml", "source": "今日招聘", "posted": "2026-08-23", "note": "通州临界通勤，大厂数据岗作冲刺。", "link_ok": true}, {"id": 23, "tab": 2, "subtab": "internet", "batch": 1, "company": "沈阳阅准科技有限公司（北京）", "title": "测试开发工程师", "salary_text": "12-24k·14薪", "salary_min": 12, "salary_max": 24, "location": "海淀区", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["Python", "接口测试", "自动化测试", "CI/CD", "性能测试", "AI业务测试"], "gap": "她Python基础，缺测试框架/CI-CD/接口测试实战；要求1-3年 → 中缺口，薪资可观（14薪）。", "match": 60, "salary_score": 52.0, "commute_score": 30.0, "priority": 50, "priority_level": "C", "link": "https://www.quanzhi.com/job/6a96627d67c5b4892cc1b01f", "source": "全职招聘网", "posted": "近期在招", "note": "海淀，Python测试开发迁移方向。", "link_ok": true}, {"id": 24, "tab": 2, "subtab": "internet", "batch": 1, "company": "绿盟科技集团股份有限公司", "title": "测试开发工程师（校招）", "salary_text": "面议（校招）", "salary_min": null, "salary_max": null, "location": "海淀区·北洼路", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["Python/Shell", "Linux", "测试用例", "自动化测试", "校招应届"], "gap": "校招应届、计算机相关优先（她非计算机但工科）；她Python/逻辑基础+可用AI辅助 → 中-大缺口，但校招友好。", "match": 58, "salary_score": 50.0, "commute_score": 30.0, "priority": 49, "priority_level": "C", "link": "https://www.iguopin.com/job/detail?id=214736079717139811", "source": "国聘", "posted": "2026秋招", "note": "校招，安全公司测试开发，应届可投。", "link_ok": true}, {"id": 25, "tab": 2, "subtab": "internet", "batch": 1, "company": "中化数智科技有限公司", "title": "产品经理（智能制造方向）", "salary_text": "面议", "salary_min": null, "salary_max": null, "location": "海淀区·中国化工大厦", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["B端产品", "工业互联网", "需求分析", "原型设计", "化工/能源行业背景", "PRD"], "gap": "她工科(油气储运)+文档/方案经验可迁移工业能源产品；要求2年+能源化工B端产品经验 → 中-大缺口，但行业高度对口。", "match": 62, "salary_score": 50.0, "commute_score": 30.0, "priority": 50, "priority_level": "C", "link": "https://www.iguopin.com/job/detail?id=189764996799072745", "source": "国聘", "posted": "2026-05-11", "note": "化工数字化/工业互联网产品，行业对口转产品。", "link_ok": true}, {"id": 26, "tab": 1, "subtab": null, "batch": 2, "company": "亚通石化集团有限公司", "title": "工艺工程师(石油化工)", "salary_text": "8-12k", "salary_min": 8, "salary_max": 12, "location": "朝阳区·北三环东路12号", "commute_min": 20, "circle": "优", "within_1h": true, "skills": ["化工工艺设计", "AutoCAD", "Aspen/ProII", "P&ID/PFD", "校招26应届"], "gap": "校招应届岗，石油石化化工工艺方向对口；要求AutoCAD与Aspen/ProII，她均掌握；26应届背景契合，缺口很小。", "match": 68, "salary_score": 20.0, "commute_score": 80.0, "priority": 57, "priority_level": "C", "link": "https://www.quanzhi.com/job/69c87a554d195df713e258d9", "source": "全职招聘网", "posted": "2026-05-11", "note": "朝阳，通勤优；校招应届友好，化工工艺优选。", "link_ok": true}, {"id": 27, "tab": 1, "subtab": null, "batch": 2, "company": "中科瑞奥能源科技股份有限公司", "title": "工艺设计工程师（应届生）", "salary_text": "面议", "salary_min": null, "salary_max": null, "location": "海淀区·丰慧中路7号", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["液化天然气(LNG)工艺", "石油/化工工艺设计", "工艺包设计", "设备选型与计算", "本科/应届生优先"], "gap": "LNG/石油/化工工艺设计，与油气储运（LNG储运）高度对口；明确应届生优先、本科即可，她背景契合；缺口很小。", "match": 78, "salary_score": 50.0, "commute_score": 30.0, "priority": 58, "priority_level": "B", "link": "https://m.zhupinhr.com/zhaopin/info-1547495820692164608.html", "source": "筑招网", "posted": "近期在招", "note": "海淀，应届生优先，LNG方向强对口，优先级高。", "link_ok": true}, {"id": 28, "tab": 1, "subtab": null, "batch": 2, "company": "华油惠博普科技股份有限公司", "title": "配管工程师", "salary_text": "面议", "salary_min": null, "salary_max": null, "location": "海淀区·马甸东路17号", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["油气储运/油气处理", "压力管道设计", "CAD", "英语读写", "2年+"], "gap": "油气储运/油气处理专业对口（她本专业）；要求2年以上经验+英语读写；她<1年、英语未明确 → 经验与语言缺口中等。", "match": 62, "salary_score": 50.0, "commute_score": 30.0, "priority": 50, "priority_level": "C", "link": "https://m.800hr.com/job/5GyxO", "source": "英才网联", "posted": "2026-06-10", "note": "海淀，专业高度对口（油气储运），缺经验年限。", "link_ok": true}, {"id": 29, "tab": 1, "subtab": null, "batch": 2, "company": "亚通石化集团有限公司", "title": "配管设计/管道工程师（石油化工）", "salary_text": "面议", "salary_min": null, "salary_max": null, "location": "朝阳区·北三环东路12号", "commute_min": 20, "circle": "优", "within_1h": true, "skills": ["石化配管设计", "AutoCAD/PDMS/E3D/SP3D", "P&ID", "施工图", "3-5年"], "gap": "石化配管/管道设计，需AutoCAD+三维配管软件（PDMS/E3D/SP3D）；她有AutoCAD基础但缺三维配管软件与3-5年经验 → 中缺口。", "match": 60, "salary_score": 50.0, "commute_score": 80.0, "priority": 62, "priority_level": "B", "link": "https://www.quanzhi.com/job/6a6a275c73ad7cc859aedf44", "source": "全职招聘网", "posted": "近期在招", "note": "朝阳，通勤优；需补三维配管软件能力。", "link_ok": true}, {"id": 30, "tab": 1, "subtab": null, "batch": 2, "company": "天津缘众达管道工程有限公司（北京项目）", "title": "设计工程师-石油天然气行业", "salary_text": "18-25k", "salary_min": 18, "salary_max": 25, "location": "海淀区", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["石油天然气工程设计", "EPC项目流程", "多专业接口管理", "英语(国际项目)", "3-5年"], "gap": "石油天然气设计/EPC方向高度相关；但要求3-5年+英语优秀+设计院对接经验，她<1年、英语未明确 → 经验与语言缺口较大，薪资上限高。", "match": 56, "salary_score": 66.0, "commute_score": 30.0, "priority": 52, "priority_level": "C", "link": "https://m.liepin.com/job/1982142211.shtml", "source": "猎聘", "posted": "今日更新", "note": "海淀，薪资高（18-25k），门槛偏高作冲刺目标。", "link_ok": true}, {"id": 31, "tab": 2, "subtab": "chem", "batch": 2, "company": "国勘能源集团公司", "title": "化工工程/工艺工程师", "salary_text": "10-20k", "salary_min": 10, "salary_max": 20, "location": "朝阳区", "commute_min": 20, "circle": "优", "within_1h": true, "skills": ["Aspen/HYSYS", "工艺设计", "COMSOL/流程优化", "数据处理", "应届可投"], "gap": "化工工艺+Aspen/HYSYS完全对口，且标注『应届生可投』；她工具匹配、本科工科对口 → 小缺口。", "match": 75, "salary_score": 40.0, "commute_score": 80.0, "priority": 66, "priority_level": "B", "link": "https://m.quanzhi.com/job/detail/691e07e6fc1e16b7afdb7a3e", "source": "全职招聘网", "posted": "近期在招", "note": "朝阳，通勤优；应届可投，化工工艺优选。", "link_ok": true}, {"id": 32, "tab": 2, "subtab": "chem", "batch": 2, "company": "科林能源技术（北京）有限公司", "title": "化工工艺工程师", "salary_text": "10-20k", "salary_min": 10, "salary_max": 20, "location": "朝阳区·京城大厦", "commute_min": 20, "circle": "优", "within_1h": true, "skills": ["煤气化工艺", "ASPEN/AutoCAD", "工艺包设计", "PID", "应届可投"], "gap": "煤化工/煤气化工艺+Aspen/AutoCAD对口；标注应届可投、本科化工相关 → 小-中缺口。", "match": 72, "salary_score": 40.0, "commute_score": 80.0, "priority": 64, "priority_level": "B", "link": "https://m.quanzhi.com/job/detail/69d5db3c85fb8af095c55de0", "source": "全职招聘网", "posted": "截止2027-04-08", "note": "朝阳，通勤优；气化技术高新企业。", "link_ok": true}, {"id": 33, "tab": 2, "subtab": "doc", "batch": 2, "company": "共致开源（北京）信息科技有限公司", "title": "技术文档工程师", "salary_text": "15-25k", "salary_min": 15, "salary_max": 25, "location": "海淀区·上地", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["文档体系/规范建设", "产品白皮书/PPT", "Visio/XMind", "文档评审", "1-3年"], "gap": "她技术方案/标准编制/投标文档经验直接迁移；要求1-3年+文档体系能力，她<1年但项目有中标经历 → 中低缺口，薪资可观。", "match": 72, "salary_score": 60.0, "commute_score": 30.0, "priority": 58, "priority_level": "B", "link": "https://www.quanzhi.com/job/664b0ce5aa127570407461df", "source": "全职招聘网", "posted": "近期在招", "note": "海淀上地，文档/标准能力变现，15-25k。", "link_ok": true}, {"id": 34, "tab": 2, "subtab": "doc", "batch": 2, "company": "北京亦庄国际人力资源（半导体技术文档）", "title": "技术文档工程师（半导体）", "salary_text": "10-14k", "salary_min": 10, "salary_max": 14, "location": "大兴区·亦庄", "commute_min": 55, "circle": "良", "within_1h": true, "skills": ["半导体技术文档撰写", "设备手册/TSB", "Visio/Acrobat", "英语读写", "应届"], "gap": "她标准编制/技术文档经验迁移；要求工科本科+英语读写+1-3年优先，她本科但经验<1年、英语未知；中缺口，亦庄临界通勤。", "match": 66, "salary_score": 28.0, "commute_score": 10.0, "priority": 41, "priority_level": "C", "link": "http://job.jdzj.com/job3985652.shtml", "source": "机电招聘网", "posted": "近期在招", "note": "亦庄，临界通勤；文档能力迁移首选之一。", "link_ok": true}, {"id": 35, "tab": 2, "subtab": "doc", "batch": 2, "company": "某AI芯片企业（北京）", "title": "产品文档工程师", "salary_text": "20-40k", "salary_min": 20, "salary_max": 40, "location": "海淀区", "commute_min": 45, "circle": "良", "within_1h": true, "skills": ["技术文档体系", "芯片/数据中心文档", "Photoshop/Visio", "中英文撰写", "3-5年"], "gap": "她文档/标准编制能力可迁移；但要求3-5年+AI芯片技术理解+英文优异，她经验<1年 → 中-大缺口，薪资高。", "match": 58, "salary_score": 100, "commute_score": 30.0, "priority": 64, "priority_level": "B", "link": "https://www.liepin.com/job/1975853485.shtml", "source": "猎聘", "posted": "2026-08-05", "note": "海淀，高薪（20-40k）文档岗，作冲刺。", "link_ok": true}]};</script>
+  <script>
+/* 北京求职看板 — 前端逻辑 */
+(function () {
+  "use strict";
+
+  var DATA = null;
+  var state = { tab: 1, subtab: "all", sort: "priority", only1h: false, q: "", showBatch2: false };
+
+  var COLORS = { A: "#1f9d6b", B: "#e6a23c", C: "#d9534f" };
+
+  function el(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function load() {
+    if (window.__DATA__) { DATA = window.__DATA__; init(); return; }
+    fetch("./data/jobs.json?t=" + Date.now())
+      .then(function (r) { return r.json(); })
+      .then(function (d) { DATA = d; init(); })
+      .catch(function (e) {
+        el("joblist").innerHTML =
+          '<div class="empty">⚠️ 数据加载失败，请确认已部署 data/jobs.json。<br>' + esc(e) + "</div>";
+      });
+  }
+
+  function init() {
+    var m = DATA.meta, c = m.candidate;
+    el("heroTarget").textContent = c.target;
+    el("heroAnchor").textContent = c.anchor;
+    el("heroUpdated").textContent = "更新于 " + m.updated_at + " (" + m.timezone + ")";
+    el("cnt1").textContent = m.tab1_count;
+    el("cnt2").textContent = m.tab2_count;
+    el("footNote").textContent = m.note;
+
+    renderStats();
+    bindControls();
+    render();
+  }
+
+  function renderStats() {
+    var jobs = DATA.jobs.filter(function (j) { return state.showBatch2 || j.batch !== 2; });
+    var in1h = jobs.filter(function (j) { return j.within_1h; }).length;
+    var avgMatch = Math.round(jobs.reduce(function (a, j) { return a + j.match; }, 0) / jobs.length);
+    var t1 = jobs.filter(function (j) { return j.tab === 1; }).length;
+    var t2 = jobs.filter(function (j) { return j.tab === 2; }).length;
+    var stats = [
+      { num: jobs.length, lbl: "在招岗位总数" },
+      { num: t1 + " / " + t2, lbl: "本行业 / 跨行业" },
+      { num: in1h, lbl: "位于 1 小时圈内" },
+      { num: avgMatch + "%", lbl: "平均匹配度" }
+    ];
+    el("stats").innerHTML = stats.map(function (s) {
+      return '<div class="stat"><div class="num">' + esc(s.num) + '</div><div class="lbl">' + esc(s.lbl) + "</div></div>";
+    }).join("");
+  }
+
+  function currentJobs() {
+    var list = DATA.jobs.filter(function (j) { return j.tab === state.tab; });
+    if (state.tab === 2 && state.subtab !== "all") {
+      list = list.filter(function (j) { return j.subtab === state.subtab; });
+    }
+    if (!state.showBatch2) list = list.filter(function (j) { return j.batch !== 2; });
+    if (state.only1h) list = list.filter(function (j) { return j.within_1h; });
+    if (state.q) {
+      var q = state.q.toLowerCase();
+      list = list.filter(function (j) {
+        return (j.company + j.title + j.gap + j.skills.join(" ") + j.location).toLowerCase().indexOf(q) > -1;
+      });
+    }
+    list.sort(function (a, b) {
+      if (state.sort === "priority") return b.priority - a.priority;
+      if (state.sort === "match") return b.match - a.match;
+      if (state.sort === "salary") return (b.salary_max || 0) - (a.salary_max || 0);
+      if (state.sort === "distance") return a.commute_min - b.commute_min;
+      return 0;
+    });
+    return list;
+  }
+
+  function renderSubtabs() {
+    var bar = el("subtabs");
+    if (!bar) return;
+    if (state.tab !== 2) { bar.style.display = "none"; bar.innerHTML = ""; return; }
+    bar.style.display = "flex";
+    var defs = [{ key: "all", name: "全部" }].concat(DATA.meta.subtabs || []);
+    bar.innerHTML = defs.map(function (d) {
+      var active = state.subtab === d.key ? " active" : "";
+      return '<button class="subtab' + active + '" data-sub="' + d.key + '">' + esc(d.name) + "</button>";
+    }).join("");
+    Array.prototype.forEach.call(bar.querySelectorAll(".subtab"), function (b) {
+      b.addEventListener("click", function () {
+        state.subtab = b.getAttribute("data-sub");
+        render();
+      });
+    });
+  }
+
+  function render() {
+    renderSubtabs();
+    var list = currentJobs();
+    renderJobCards(list);
+    renderCharts(list);
+    updateLoadMore();
+  }
+
+  function updateLoadMore() {
+    var wrap = el("loadMoreWrap");
+    if (!wrap) return;
+    // 计数跟随当前子 tab：若停在某个子 tab，只统计该子 tab 内的第二批岗位
+    var hidden = DATA.jobs.filter(function (j) {
+      return j.tab === state.tab && j.batch === 2 &&
+        (state.tab !== 2 || state.subtab === "all" || j.subtab === state.subtab);
+    }).length;
+    if (state.showBatch2) {
+      wrap.style.display = "block";
+      el("loadMore").style.display = "none";
+      el("allShown").style.display = "block";
+    } else if (hidden > 0) {
+      wrap.style.display = "block";
+      el("loadMore").style.display = "inline-block";
+      el("allShown").style.display = "none";
+      el("moreCount").textContent = hidden;
+    } else {
+      wrap.style.display = "none";
+    }
+  }
+
+  function renderJobCards(list) {
+    if (!list.length) {
+      el("joblist").innerHTML = '<div class="empty">没有符合筛选条件的岗位。</div>';
+      return;
+    }
+    el("joblist").innerHTML = list.map(function (j) {
+      var distCls = j.circle === "优" ? "dist" : (j.circle === "良" ? "dist warn" : "dist over");
+      var skills = j.skills.map(function (s) { return '<span class="s">' + esc(s) + "</span>"; }).join("");
+      var linkCls = j.link_ok ? "btn-link" : "btn-link dead";
+      var linkTxt = j.link_ok ? "查看招聘链接 →" : "链接需复核";
+      var deadNote = j.link_ok ? "" : '<span class="src">⚠ 链接暂不可达</span>';
+      return '' +
+        '<article class="job lv' + j.priority_level + '">' +
+          '<div class="topline">' +
+            '<div><h4>' + esc(j.title) + '</h4><div class="company">' + esc(j.company) + "</div></div>" +
+            '<span class="pri ' + j.priority_level + '">优先级 ' + j.priority + " · " + j.priority_level + "</span>" +
+          "</div>" +
+          '<div class="tags">' +
+            '<span class="tag">💰 ' + esc(j.salary_text) + "</span>" +
+            '<span class="tag ' + distCls + '">🚇 约 ' + j.commute_min + " 分钟 · " + j.circle + "</span>" +
+            '<span class="tag match">🎯 匹配度 ' + j.match + "%</span>" +
+          "</div>" +
+          '<div class="matchbar"><i style="width:' + j.match + '%"></i></div>' +
+          '<div class="gap"><b>能力缺口：</b>' + esc(j.gap) + "</div>" +
+          '<div class="skills">' + skills + "</div>" +
+          (j.note ? '<div class="note">' + esc(j.note) + "</div>" : "") +
+          '<div class="actions">' +
+            '<a class="' + linkCls + '" href="' + esc(j.link) + '" target="_blank" rel="noopener"> ' + linkTxt + " </a>" +
+            deadNote +
+            '<span class="src">来源：' + esc(j.source) + " · " + esc(j.posted) + "</span>" +
+          "</div>" +
+        "</article>";
+    }).join("");
+  }
+
+  var charts = {};
+  function renderCharts(list) {
+    if (typeof Chart === "undefined") return;
+    var top = list.slice().sort(function (a, b) { return b.priority - a.priority; }).slice(0, 10);
+
+    // Priority bar
+    var barCtx = el("chartPriority");
+    if (charts.bar) charts.bar.destroy();
+    charts.bar = new Chart(barCtx, {
+      type: "bar",
+      data: {
+        labels: top.map(function (j) { return (j.company.length > 8 ? j.company.slice(0, 8) + "…" : j.company); }),
+        datasets: [{
+          label: "投递优先级",
+          data: top.map(function (j) { return j.priority; }),
+          backgroundColor: top.map(function (j) { return COLORS[j.priority_level]; })
+        }]
+      },
+      options: {
+        indexAxis: "y", responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: { min: 0, max: 100 } }
+      }
+    });
+
+    // Scatter: 匹配度 × 通勤
+    var scCtx = el("chartScatter");
+    if (charts.sc) charts.sc.destroy();
+    charts.sc = new Chart(scCtx, {
+      type: "scatter",
+      data: {
+        datasets: [
+          { label: "A 级", data: list.filter(function (j) { return j.priority_level === "A"; })
+              .map(function (j) { return { x: j.commute_min, y: j.match, t: j.title }; }), backgroundColor: COLORS.A },
+          { label: "B 级", data: list.filter(function (j) { return j.priority_level === "B"; })
+              .map(function (j) { return { x: j.commute_min, y: j.match, t: j.title }; }), backgroundColor: COLORS.B },
+          { label: "C 级", data: list.filter(function (j) { return j.priority_level === "C"; })
+              .map(function (j) { return { x: j.commute_min, y: j.match, t: j.title }; }), backgroundColor: COLORS.C }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: { callbacks: { label: function (c) {
+            return c.raw.t + "：通勤 " + c.raw.x + " 分 / 匹配 " + c.raw.y + "%";
+          } } }
+        },
+        scales: {
+          x: { title: { display: true, text: "潘家园单程通勤（分钟）" }, min: 0, max: 100 },
+          y: { title: { display: true, text: "匹配度 (%)" }, min: 40, max: 100 }
+        }
+      }
+    });
+
+    // Distribution doughnut
+    var distCtx = el("chartDist");
+    if (charts.dn) charts.dn.destroy();
+    var cnt = { A: 0, B: 0, C: 0 };
+    list.forEach(function (j) { cnt[j.priority_level]++; });
+    charts.dn = new Chart(distCtx, {
+      type: "doughnut",
+      data: {
+        labels: ["A 级（优先投递）", "B 级（可考虑）", "C 级（备选/冲刺）"],
+        datasets: [{ data: [cnt.A, cnt.B, cnt.C], backgroundColor: [COLORS.A, COLORS.B, COLORS.C] }]
+      },
+      options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+    });
+  }
+
+  function bindControls() {
+    Array.prototype.forEach.call(document.querySelectorAll("#tabs .tab"), function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll("#tabs .tab").forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        state.tab = parseInt(btn.getAttribute("data-tab"), 10);
+        state.subtab = "all";
+        render();
+      });
+    });
+    el("sort").addEventListener("change", function (e) { state.sort = e.target.value; render(); });
+    el("only1h").addEventListener("change", function (e) { state.only1h = e.target.checked; render(); });
+    el("search").addEventListener("input", function (e) { state.q = e.target.value.trim(); render(); });
+    var lm = el("loadMore");
+    if (lm) lm.addEventListener("click", function () { state.showBatch2 = true; render(); });
+  }
+
+  load();
+})();
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>北京求职看板 · 胡蕊</title>
+  <meta name="description" content="基于简历的北京地区求职辅助方案：潘家园通勤1小时圈岗位匹配、薪资、技能缺口与投递优先级看板。" />
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+  <div class="page">
+    <!-- 顶部信息 -->
+    <header class="hero">
+      <div class="hero-main">
+        <div class="avatar">胡</div>
+        <div>
+          <h1>北京求职看板</h1>
+          <p class="subtitle" id="heroTarget">燃气设计工程师 / 工艺设计工程师</p>
+          <p class="anchor">📍 通勤锚点：<span id="heroAnchor">潘家园地铁站（北京·朝阳区·10号线）</span></p>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <span class="badge auto">⏱ 每日自动更新</span>
+        <span class="updated" id="heroUpdated">更新于 —</span>
+      </div>
+    </header>
+
+    <!-- 统计卡片 -->
+    <section class="stats" id="stats"></section>
+
+    <!-- 图表 -->
+    <section class="charts">
+      <div class="card chart-card">
+        <h3>📊 投递优先级 Top 10</h3>
+        <canvas id="chartPriority" height="320"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h3>🎯 匹配度 × 通勤距离</h3>
+        <canvas id="chartScatter" height="320"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h3>🥧 优先级等级分布</h3>
+        <canvas id="chartDist" height="320"></canvas>
+      </div>
+    </section>
+
+    <!-- 控制栏 -->
+    <section class="controls">
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="1">本行业岗位 <span class="cnt" id="cnt1">0</span></button>
+        <button class="tab" data-tab="2">跨行业转岗机会 <span class="cnt" id="cnt2">0</span></button>
+      </div>
+      <div class="subtabs" id="subtabs" style="display:none"></div>
+      <div class="filters">
+        <input type="search" id="search" placeholder="🔍 搜索公司 / 职位 / 技能…" />
+        <select id="sort">
+          <option value="priority">排序：投递优先级 ↓</option>
+          <option value="match">排序：匹配度 ↓</option>
+          <option value="salary">排序：薪资上限 ↓</option>
+          <option value="distance">排序：通勤距离 ↑</option>
+        </select>
+        <label class="switch">
+          <input type="checkbox" id="only1h" />
+          <span>仅看 1 小时圈</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- 岗位列表 -->
+    <section class="joblist" id="joblist"></section>
+
+    <!-- 继续查询（点击揭示第二批岗位） -->
+    <div class="loadmore" id="loadMoreWrap" style="display:none;text-align:center;margin:20px 0 4px;">
+      <button class="load-more" id="loadMore" type="button">➕ 继续查询 · 再增加 <span id="moreCount">0</span> 个岗位</button>
+      <p class="allshown" id="allShown" style="display:none;color:var(--muted);font-size:13px;margin:10px 0 0;">✅ 已显示全部岗位</p>
+    </div>
+
+    <footer class="foot">
+      <p>数据来源：各大招聘平台公开在招/近期发布岗位（已附真实链接）。匹配度与优先级由简历画像加权计算，仅供求职决策参考。</p>
+      <p id="footNote"></p>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="./assets/app.js"></script>
+</body>
+</html>
